@@ -34,4 +34,4 @@ build/
 
 ###Custom###
 #src/test/
-#*.properties
+*.properties
