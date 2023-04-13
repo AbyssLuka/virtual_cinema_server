@@ -32,10 +32,12 @@ public class ShiroConfig {
          */
         Map<String, String> filterRuleMap = new HashMap<>();
         filterRuleMap.put("/user/profile_photo","anon");
-        filterRuleMap.put("/activation/**","anon");
-        filterRuleMap.put("/video/**","anon");
+        filterRuleMap.put("/user/activation/**","anon");
+        filterRuleMap.put("/user/kaptcha","anon");
+        filterRuleMap.put("/user/login","anon");
+        filterRuleMap.put("/user/signup","anon");
+        filterRuleMap.put("/user/sendEmailCode","anon");
         filterRuleMap.put("/file/**","anon");
-//        filterRuleMap.put("/anime_post/**","anon");
         filterRuleMap.put("/**", "jwt");
         factoryBean.setLoginUrl("/login");
 //        factoryBean.setUnauthorizedUrl("/401");
