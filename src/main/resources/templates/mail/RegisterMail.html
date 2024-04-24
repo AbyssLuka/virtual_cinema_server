@@ -4,11 +4,50 @@
     <meta charset="UTF-8">
     <title>激活账号</title>
 </head>
+<style>
+    body {
+        /*display: flex;*/
+        /*flex-direction: column;*/
+        /*align-items: center;*/
+    }
+
+    #container {
+        width: 500px;
+        padding: 10px 0 50px 0;
+        /*background: rgba(1, 22, 39, 0.8);*/
+        color: black;
+    }
+
+    #container-in {
+        display: flex;
+        flex-direction: column;
+        margin: 0 0 0 50px;
+    }
+
+    label{
+        margin: 5px 0;
+    }
+
+    #url {
+        cursor: pointer;
+        color: #2671ea;
+        font-size: 20px;
+    }
+</style>
 <body>
-<label>
-    <h2>你好,</h2>
-    <h2  th:text="${userName}"></h2>
-</label>
-<a th:href="${url}">点击激活</a>
+<div id="container">
+    <div id="container-in">
+        <h1>•ࡇ•</h1>
+        <h3 th:text="'你好！' + ${userName} +'!ヾ(´･ω･｀)ﾉ'"></h3>
+        <p>欢迎注册！( ͡° ͜ʖ ͡°)!</p>
+        <label>
+            点击链接激活账号，有效时间30min。ᕕ( ᐛ )ᕗ
+        </label>
+        <a id="url" th:href="${url}" th:text="${url}"></a>
+        <label>
+            如果不是本人操作，请忽略这封邮件。_(´ཀ`」 ∠)_
+        </label>
+    </div>
+</div>
 </body>
 </html>

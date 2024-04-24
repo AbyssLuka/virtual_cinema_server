@@ -11,6 +11,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/comic")
@@ -21,7 +22,7 @@ public class ComicController {
 
     @ResponseBody
     @RequestMapping(path = {"/list"}, method = RequestMethod.POST)
-    public String comic(@RequestBody PageObject pageObject) {
+    public String comic(@RequestBody @Valid PageObject pageObject) {
         PageRequest of = PageRequest.of(pageObject.getPage(), pageObject.getSize());
         Page<ComicView> comicViewEntities = comicViewService.queryByPage(new ComicViewEntity(), of);
         return CustomUtil.toJson(200, "", comicViewEntities);

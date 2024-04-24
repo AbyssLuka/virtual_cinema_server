@@ -15,16 +15,18 @@ public class MailClient {
     @Value("${spring.mail.username}")
     private String from;
 
+    @Value("${spring.mail.nickname}")
+    private String nickname;
+
     @Resource
     private JavaMailSender javaMailSender;
 
     public void sendMail(String to, String subject, String content) {
 
         MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
-
         try {
-            helper.setFrom(from);
+            MimeMessageHelper helper = new MimeMessageHelper(message,true);
+            helper.setFrom(nickname + "<" + from + ">");
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(content, true);

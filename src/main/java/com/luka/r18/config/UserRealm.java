@@ -28,13 +28,11 @@ public class UserRealm extends AuthorizingRealm {
 //        UsernamePasswordToken userToken = (UsernamePasswordToken) authenticationToken;
 
         try{
-
             String token = (String) authenticationToken.getCredentials();
             assert token != null;
 
             String userName = TokenUtil.getTokenClaim(token, "username");
             assert userName != null;
-
 
             UserDataEntity user = userDataServiceImpl.selectUserByName(userName);
             assert user != null;

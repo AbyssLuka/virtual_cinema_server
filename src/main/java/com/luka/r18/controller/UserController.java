@@ -13,7 +13,7 @@ import com.luka.r18.util.TokenUtil;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UnknownAccountException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -21,12 +21,13 @@ import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-@Controller
+@RestController
 @RequestMapping(path = {"user"})
 public class UserController {
 
@@ -44,28 +45,27 @@ public class UserController {
     @Value("${profile-photo.path}")
     private String profilePhotoPath;
 
-    @ResponseBody
     @RequestMapping(path = {"/login"}, method = RequestMethod.POST)
-    public String login(@RequestBody LoginObject loginObject, HttpServletRequest request, HttpServletResponse response) {
+    public String login(@RequestBody @Validated LoginObject loginObject, HttpServletRequest request, HttpServletResponse response) {
         try {
             String username = loginObject.getUsername();
             String password = loginObject.getPassword();
-
-            Object code = redisService.get(loginObject.getCode());                                              //查询redis是否存在验证码
-            if (code == null) {
-                return CustomUtil.toJson(400, "验证码错误或者过期");
-            }
-
-            UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);                             //查询账号是否存在
-            password = CustomUtil.md5(password + userDataEntity.getSalt());                                        //密文密码
-            String token = TokenUtil.createToken(username, password, userDataEntity.getUuid());                         //创建Token
-            SecurityUtils.getSubject().login(new JWTToken(token));                                                      //登录验证
-            response.setHeader("token", token);                                                                      //Token存入请求头
+            //查询redis是否存在验证码
+            Object code = redisService.get(loginObject.getCode());
+//            if (code == null)
+//                return CustomUtil.toJson(400, "验证码错误或者过期");
+            UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);
+            password = CustomUtil.md5(password + userDataEntity.getSalt());
+            //创建Token
+            String token = TokenUtil.createToken(username, password, userDataEntity.getUuid());
+            //登录验证
+            SecurityUtils.getSubject().login(new JWTToken(token));
+            response.setHeader("token", token);
             return CustomUtil.toJson(200, "登录成功");
         } catch (UnknownAccountException e) {
-            return CustomUtil.toJson(400, "账号或密码错误", e);
+            return CustomUtil.toJson(400, "账号或密码错误", e.getMessage());
         } catch (NullPointerException e) {
-            return CustomUtil.toJson(400, "账号或密码异常", e);
+            return CustomUtil.toJson(400, "账号或密码异常", e.getMessage());
         }
     }
 
@@ -75,9 +75,8 @@ public class UserController {
      * @param signupObject 注册信息
      * @return code
      */
-    @ResponseBody
     @RequestMapping(path = {"/signup"}, method = RequestMethod.POST)
-    public String register(@RequestBody SignupObject signupObject) {
+    public String register(@RequestBody @Validated SignupObject signupObject) {
         String username = signupObject.getUsername();
         String email = signupObject.getEmail();
         //账号是否已经被注册？
@@ -85,26 +84,20 @@ public class UserController {
         if (count > 0) {
             return CustomUtil.toJson(10001, "用户名已存在或者邮箱已被注册");
         }
-
         String tempUuid = (String) redisService.get(email);
         if (tempUuid != null) {
             return CustomUtil.toJson(10002, "激活码未过期");
         }
-
         //生成激活链接
         String uuid = CustomUtil.getUUID();
         //保存至Redis
-        boolean uuidBool = redisService.set(uuid, signupObject, 18000000);
-
-        redisService.set(email, uuid, 600000);
-
+        boolean uuidBool = redisService.set(uuid, signupObject, 60 * 30);
+        redisService.set(email, uuid, 60 * 30);
         if (!uuidBool) {
             return CustomUtil.toJson(10000, "未知错误 注册失败");
         }
-
         String url = host.concat("/user/activation/").concat(uuid);
         userDataServiceImpl.sendActivateMessage(username, url, email);
-
         return CustomUtil.toJson(200, "激活邮件已发送");
     }
 
@@ -114,7 +107,6 @@ public class UserController {
      * @param uuid
      * @return code
      */
-    @ResponseBody
     @RequestMapping(path = {"/activation/{uuid}"}, method = RequestMethod.GET)
     public String activation(@PathVariable("uuid") String uuid) {
         SignupObject signupObject = (SignupObject) redisService.get(uuid);
@@ -131,14 +123,17 @@ public class UserController {
         userDataEntity.setEmail(signupObject.getEmail());
         userDataEntity.setProfilePhoto("default.jpg");
         //存入数据库
-        userDataServiceImpl.insert(userDataEntity);
+        int insert = userDataServiceImpl.insert(userDataEntity);
         //清除redis中的缓存数据
         String email = signupObject.getEmail();
         redisService.del(email, uuid);
-        return CustomUtil.toJson(200, "激活成功");
+        if (insert > 0) {
+            return CustomUtil.toJson(200, "激活成功");
+        } else {
+            return CustomUtil.toJson(200, "激活失败");
+        }
     }
 
-    @ResponseBody
     @RequestMapping(path = {"/profile_photo"}, method = RequestMethod.GET)
     public void profilePhoto(HttpServletResponse response, HttpServletRequest request) {
         String token = request.getHeader("token");
@@ -162,7 +157,6 @@ public class UserController {
         }
     }
 
-    @ResponseBody
     @RequestMapping(path = {"/info"}, method = RequestMethod.GET)
     public String userInfo(HttpServletRequest request) {
         String token = request.getHeader("token");
@@ -177,7 +171,6 @@ public class UserController {
         return CustomUtil.toJson(200, "成功", userInfo);
     }
 
-    @ResponseBody
     @RequestMapping(path = {"/update_password"}, method = RequestMethod.POST)
     public String updatePassword(@RequestBody LoginObject update, HttpServletRequest request, HttpServletResponse response) {
         if (update == null) {
@@ -199,12 +192,11 @@ public class UserController {
         return CustomUtil.toJson(200, "成功");
     }
 
-    @ResponseBody
     @RequestMapping(path = {"/kaptcha"}, method = RequestMethod.GET)
     public void kaptcha(HttpServletResponse response) {
         String text = kaptcha.createText();
         BufferedImage image = kaptcha.createImage(text);
-        redisService.set(text, text, 60000);
+        redisService.set(text, text, 60 * 5);
         response.setContentType("image/png");
         try (ServletOutputStream outputStream = response.getOutputStream();) {
             ImageIO.write(image, "png", outputStream);
@@ -212,7 +204,6 @@ public class UserController {
         }
     }
 
-    @ResponseBody
     @RequestMapping(path = {"/sendEmailCode"}, method = RequestMethod.POST)
     public String sendEmailCode(@RequestBody SignupObject signupObject) {
         String email = signupObject.getEmail();
@@ -220,17 +211,16 @@ public class UserController {
         String uuid = (String) redisService.get(email);
         if (uuid == null) {
             uuid = CustomUtil.getUUID();
-            redisService.set(email, uuid);
+            redisService.set(email, uuid, 60 * 5);
         }
         String url = host.concat("/user/activation/").concat(uuid);
         userDataServiceImpl.sendActivateMessage(username, url, email);
         return CustomUtil.toJson(10003, "失败");
     }
 
-    @ResponseBody
     @RequestMapping(path = {"/uploadProfilePhoto"}, method = RequestMethod.GET)
     public void uploadProfilePhoto(HttpServletResponse response) {
-        UserDataEntity principal = (UserDataEntity) SecurityUtils.getSubject().getPrincipal();
-        System.out.println(principal.getUsername());
+        Object principal = SecurityUtils.getSubject().getPrincipal();
+        System.out.println(principal.toString());
     }
 }

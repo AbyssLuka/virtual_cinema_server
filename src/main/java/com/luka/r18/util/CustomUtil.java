@@ -21,7 +21,7 @@ public class CustomUtil {
     }
 
     public static String md5(String key) {
-        if (key == null || key.equals("")) {
+        if (key == null || key.isEmpty()) {
             return null;
         }
         return DigestUtils.md5Hex(key.getBytes());

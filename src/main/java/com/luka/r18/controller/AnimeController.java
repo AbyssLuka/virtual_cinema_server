@@ -13,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,8 +30,8 @@ public class AnimeController {
 
     @ResponseBody
     @RequestMapping(path = {"/list"}, method = RequestMethod.POST)
-    public String animeViewList(@RequestBody PageObject pageObject) {
-
+    public String animeViewList(@RequestBody @Valid PageObject pageObject) {
+        System.out.println(pageObject.getSize());
         if (pageObject.getPage() < 0) pageObject.setPage(0);
 
         PageRequest pageRequest = PageRequest.of(pageObject.getPage(), pageObject.getSize());
@@ -54,7 +55,7 @@ public class AnimeController {
         animeViewEntity.setUuid(uuid);
         Page<AnimeView> animeViewEntities = animeViewService.queryByPage(animeViewEntity, pageRequest, "");
 
-        if (animeViewEntities.getContent().size() == 0) {
+        if (animeViewEntities.getContent().isEmpty()) {
             return CustomUtil.toJson(200, "", null);
         }
 

@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luka.r18.mappers.ModelMapper">
+
+    <resultMap type="com.luka.r18.entity.ModelEntity" id="ModelMap">
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="fileName" column="file_name" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryByUserName" resultMap="ModelMap">
+        select model.*
+        from model
+                 left join player_model on model.uuid = player_model.model_uuid
+                 left join user_data on player_model.user_uuid = user_data.uuid
+        where username = #{username};
+    </select>
+
+    <select id="queryById" resultMap="ModelMap">
+        select uuid,
+               type,
+               file_name,
+               create_time
+        from model
+        where uuid = #{uuid}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="ModelMap">
+        select
+        uuid,
+        type,
+        file_name,
+        create_time
+        from model
+        <where>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="type != null and type != ''">
+                and type = #{type}
+            </if>
+            <if test="fileName != null and fileName != ''">
+                and file_name = #{fileName}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from model
+        <where>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="type != null and type != ''">
+                and type = #{type}
+            </if>
+            <if test="fileName != null and fileName != ''">
+                and file_name = #{fileName}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="uuid" useGeneratedKeys="true">
+        insert into model(type,file_name,create_time)
+        values (#{type}#{fileName}#{createTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="uuid" useGeneratedKeys="true">
+        insert into model(type,file_name,create_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type}#{entity.fileName}#{entity.createTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="uuid" useGeneratedKeys="true">
+        insert into model(type,file_name,create_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type}#{entity.fileName}#{entity.createTime})
+        </foreach>
+        on duplicate key update
+        type = values(type)file_name = values(file_name)create_time = values(create_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update model
+        <set>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            <if test="fileName != null and fileName != ''">
+                file_name = #{fileName},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+        </set>
+        where uuid = #{uuid}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete
+        from model
+        where uuid = #{uuid}
+    </delete>
+
+</mapper>
+

@@ -49,7 +49,7 @@ public class TokenUtil {
             assert token != null;
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getClaim(key).asString();
-        } catch (JWTDecodeException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -59,7 +59,7 @@ public class TokenUtil {
             assert token != null;
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getClaim("userId").asInt();
-        } catch (JWTDecodeException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -69,7 +69,7 @@ public class TokenUtil {
             assert token != null;
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getId();
-        } catch (JWTDecodeException e) {
+        } catch (Exception e) {
             return null;
         }
     }
@@ -80,7 +80,7 @@ public class TokenUtil {
             assert token != null;
             DecodedJWT jwt = JWT.decode(token);
             return jwt.getExpiresAt();
-        } catch (JWTDecodeException e) {
+        } catch (Exception e) {
             return null;
         }
     }

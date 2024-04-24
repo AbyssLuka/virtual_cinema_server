@@ -10,7 +10,6 @@ import com.luka.r18.util.NonStaticResourceHttpRequestHandler;
 import net.coobird.thumbnailator.Thumbnails;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -38,8 +37,6 @@ public class FileController {
     private AnimeFileServiceImpl animeFileService;
 
     @ResponseBody
-
-    
     @RequestMapping(path = {"/video"}, method = RequestMethod.GET)
     public String animeList(@RequestParam String uuid) {
         if (uuid == null) {
@@ -98,7 +95,7 @@ public class FileController {
         Path filePath = Paths.get(path);
         if (Files.exists(filePath)) {
             String mimeType = Files.probeContentType(filePath);
-            if (!StringUtils.isEmpty(mimeType)) {
+            if (mimeType != null) {
                 response.setContentType(mimeType);
             }
             request.setAttribute(NonStaticResourceHttpRequestHandler.ATTR_FILE, filePath);
@@ -115,9 +112,6 @@ public class FileController {
     public void download(@PathVariable("uuid") String uuid, HttpServletResponse response) {
         AnimeFileEntity animeFileEntity = animeService.selectFileByUuid(uuid);
         if (animeFileEntity == null) return;
-        System.out.println(animeFileEntity.getAbsolutePath());
-        System.out.println(warehousePath + animeFileEntity.getAbsolutePath());
-
         try {
             byte[] buffer = CustomUtil.getFile(warehousePath + animeFileEntity.getAbsolutePath());
             if (buffer == null) {
@@ -128,7 +122,7 @@ public class FileController {
             outputStream.write(buffer);
             outputStream.flush();
         } catch (IOException ex) {
-            ex.getMessage();
+            System.err.println(ex.getMessage());
         }
     }
 
@@ -138,13 +132,13 @@ public class FileController {
     @RequestMapping(path = {"/thumbnail/{uuid}"}, method = RequestMethod.GET)
     public void thumbnail(@PathVariable("uuid") String uuid, HttpServletResponse response) {
         AnimeFileEntity animeSubtitleEntity = animeService.selectFileByUuid(uuid);
-        try (OutputStream outputStream = new BufferedOutputStream(response.getOutputStream())) {
+        try (OutputStream outputStream = response.getOutputStream()) {
             Thumbnails.of(new File(warehousePath + animeSubtitleEntity.getAbsolutePath()))
                     .size(160, 160)
 //                    .outputFormat("png")
                     .toOutputStream(outputStream); // 写入输出流
         } catch (IOException ex) {
-            ex.getMessage();
+            System.err.println(ex.getMessage());
         }
     }
 

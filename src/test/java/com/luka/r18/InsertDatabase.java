@@ -38,19 +38,19 @@ class InsertDatabase {
     ComicViewService comicViewService;
 
     @Test
-    void main() {
+    void main_() {
         //录入文件
 //        setFileTable();
         //生成漫画视图
-//        setComicViewTable("6bc61eb1-b0b8-41af-b47c-a1a7c33c68c5");
+//        setComicViewTable("bb7b01bb-1a96-4281-9fb2-4db1e1529eee");
         //生成动漫视图
-//        setAnimeViewTable("bb2d793d-1b55-497e-8f30-19a65ca7f253");
+        setAnimeViewTable("01de3d74-d5aa-44f8-9d16-af203f44ec3a");
         //关联视频封面和字幕
 //        updateCoverAndSubtitle();
     }
 
     //开始的路径
-    static String basePath = "G:\\TEMP-DATABASE";
+    static String basePath = "E:\\CinemaDemoData";
 
     /*
     动漫集合
@@ -206,11 +206,11 @@ class InsertDatabase {
     public int updateAnimeEntity(AnimeFileEntity animeEntity, AnimeInfoLinkEntity animeInfoLinkEntity, String suffix, String filename) {
         String fileName = animeEntity.getFileName().substring(0, filename.lastIndexOf('.')) + suffix;
         List<AnimeFileEntity> entityListByName = animeFileService.selectAnimeFileByFileName(fileName);
-
+        boolean isImage = suffix.equals(".jpg") || suffix.equals(".png") || suffix.equals(".jpeg");
         for (AnimeFileEntity entityByName : entityListByName) {
             //判断是否再同一文件内
             if (animeEntity.getParentFolder().equals(entityByName.getParentFolder())) {
-                if (suffix.equals(".jpg")) {
+                if (isImage) {
                     //关联封面
                     animeInfoLinkEntity.setCoverUuid(entityByName.getUuid());
                 } else {
