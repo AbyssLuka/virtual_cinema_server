@@ -83,7 +83,7 @@ class InsertDatabase {
             comicViewEntity.setUuid(CustomUtil.getUUID());
             comicViewEntity.setPathUuid(fileEntity.getUuid());
             comicViewEntity.setInfo("");
-            comicViewEntity.setClick(0);
+            comicViewEntity.setClicks(0);
             comicViewEntity.setCreateTime(new Date());
             comicViewService.insert(comicViewEntity);
             System.out.printf("插入第 %d 条完成！\n", ++count);
