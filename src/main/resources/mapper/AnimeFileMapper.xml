@@ -44,7 +44,7 @@
     </select>
 
     <select id="selectAnimeByParentFolder" resultMap="AnimeFileMap">
-        select * from anime_file where parent_folder = #{parentFolder}
+        select * from anime_file where parent_folder = #{parentFolder} order by file_name;
     </select>
 
     <select id="selectAnimeByNameKeyword" resultMap="AnimeFileMap">

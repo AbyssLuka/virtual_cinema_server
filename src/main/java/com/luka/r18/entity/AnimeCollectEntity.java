@@ -9,7 +9,7 @@ import java.io.Serializable;
 /**
  * (AnimeCollect)实体类
  *
- * @author makejava
+ * @author Luka
  * @since 2022-08-30 05:03:58
  */
 @Data

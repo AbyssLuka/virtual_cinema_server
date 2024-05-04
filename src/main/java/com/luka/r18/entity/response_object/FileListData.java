@@ -12,6 +12,7 @@ public class FileListData {
     private String fileUuid;
     private String fileType;
     private String fileSize;
+    private String absolutePath;
     private String lastEditTime;
 
 }

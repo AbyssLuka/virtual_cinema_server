@@ -24,7 +24,6 @@ public class AnimeController {
 
     @Resource
     AnimeViewServiceImpl animeViewService;
-
     @Resource
     AnimeTagMapServiceImpl animeTagMapService;
 

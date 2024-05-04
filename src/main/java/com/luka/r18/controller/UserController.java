@@ -46,14 +46,15 @@ public class UserController {
     private String profilePhotoPath;
 
     @RequestMapping(path = {"/login"}, method = RequestMethod.POST)
-    public String login(@RequestBody @Validated LoginObject loginObject, HttpServletRequest request, HttpServletResponse response) {
+    public String login(@RequestBody @Validated LoginObject loginObject, HttpServletResponse response) {
         try {
             String username = loginObject.getUsername();
             String password = loginObject.getPassword();
             //查询redis是否存在验证码
             Object code = redisService.get(loginObject.getCode());
-//            if (code == null)
-//                return CustomUtil.toJson(400, "验证码错误或者过期");
+            if (code == null) {
+                return CustomUtil.toJson(400, "验证码错误或者过期");
+            }
             UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);
             password = CustomUtil.md5(password + userDataEntity.getSalt());
             //创建Token

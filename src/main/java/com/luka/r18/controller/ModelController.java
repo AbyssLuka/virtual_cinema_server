@@ -33,7 +33,6 @@ public class ModelController {
     public ResponseEntity<ResponseCodeEntity<List<ModelEntity>>> model(HttpServletRequest request) {
         String token = request.getHeader("token");
         String username = TokenUtil.getTokenClaim(token, "username");
-        System.out.println(username);
         if (username == null) {
             ResponseCodeEntity<List<ModelEntity>> token1 = new ResponseCodeEntity<>(400, "Token无效", null);
             return ResponseEntity.ok(token1);
