@@ -4,6 +4,7 @@ import com.google.code.kaptcha.Producer;
 import com.luka.r18.entity.request_object.LoginObject;
 import com.luka.r18.entity.request_object.SignupObject;
 import com.luka.r18.entity.UserDataEntity;
+import com.luka.r18.entity.request_object.UpdatePasswordObject;
 import com.luka.r18.entity.response_object.UserInfo;
 import com.luka.r18.service.impl.RedisServiceImpl;
 import com.luka.r18.service.impl.UserDataServiceImpl;
@@ -173,21 +174,28 @@ public class UserController {
     }
 
     @RequestMapping(path = {"/update_password"}, method = RequestMethod.POST)
-    public String updatePassword(@RequestBody LoginObject update, HttpServletRequest request, HttpServletResponse response) {
+    public String updatePassword(@RequestBody UpdatePasswordObject update, HttpServletRequest request, HttpServletResponse response) {
         if (update == null) {
             return CustomUtil.toJson(400, "参数错误");
         }
         String username = TokenUtil.getTokenClaim(request.getHeader("token"), "username");
 
         UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);
-        userDataEntity.setUsername(username);
+
+        System.out.println(userDataEntity);
+
+        String oldPassword = CustomUtil.md5(update.getOldPassword() + userDataEntity.getSalt());
+        if (!oldPassword.equals(userDataEntity.getPassword())){
+            return CustomUtil.toJson(-1, "失败");
+        }
+
         String salt = CustomUtil.getUUID().split("-")[0];
-        String password = CustomUtil.md5(update.getPassword() + salt);
-        userDataEntity.setPassword(password);
+        String newPassword = CustomUtil.md5(update.getNewPassword() + salt);
+        userDataEntity.setPassword(newPassword);
         userDataEntity.setSalt(salt);
         userDataServiceImpl.update(userDataEntity);                                                                     //更新
 
-        String token = TokenUtil.createToken(username, password, userDataEntity.getUuid());                                                       //生成新的token
+        String token = TokenUtil.createToken(username, newPassword, userDataEntity.getUuid());                                                       //生成新的token
         response.setHeader("token", token);
 
         return CustomUtil.toJson(200, "成功");
