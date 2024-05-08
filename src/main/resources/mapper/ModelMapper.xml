@@ -14,7 +14,7 @@
         select model.*
         from model
                  left join player_model on model.uuid = player_model.model_uuid
-                 left join user_data on player_model.user_uuid = user_data.uuid
+                 left join user on player_model.user_uuid = user.uuid
         where username = #{username};
     </select>
 

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luka.r18.mappers.VideoViewMapper">
+
+    <resultMap type="com.luka.r18.entity.response_object.VideoView"
+               id="VideoViewMapDataTransfer">
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="pathUuid" column="path_uuid" jdbcType="VARCHAR"/>
+        <result property="title" column="file_name" jdbcType="VARCHAR"/>
+        <result property="info" column="info" jdbcType="VARCHAR"/>
+        <result property="clicks" column="clicks" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <collection property="fileList" ofType="ArrayList" select="queryFileByUuid" column="path_uuid"/>
+    </resultMap>
+
+    <resultMap type="com.luka.r18.entity.VideoViewEntity" id="VideoViewMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="pathUuid" column="path_uuid" jdbcType="VARCHAR"/>
+        <result property="info" column="info" jdbcType="VARCHAR"/>
+        <result property="clicks" column="clicks" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id="FileMap" type="com.luka.r18.entity.response_object.FileListData">
+        <result property="fileType" column="type" jdbcType="VARCHAR"/>
+        <result property="fileUuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="fileName" column="file_name" jdbcType="VARCHAR"/>
+        <result property="fileSize" column="file_size" jdbcType="VARCHAR"/>
+        <result property="lastEditTime" column="last_edit_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <!--子查询-->
+    <select id="queryFileByUuid" resultMap="FileMap">
+        select file.type,
+               file.uuid,
+               file.file_name,
+               file.file_size,
+               file.last_edit_time
+        from file
+                 left join video_info
+                           on file.uuid = video_info.video_uuid
+        where parent_folder = #{path_uuid}
+        order by file_name;
+    </select>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="VideoViewMap">
+        select
+          id, uuid, path_uuid, info, clicks, create_time
+        from video_view
+        where id = #{id}
+    </select>
+
+    <!--判断某条数据是否存在-->
+    <select id="isEmptyByUuid" resultType="java.lang.Integer">
+        select count(1) from video_view where uuid = #{uuid} limit 1;
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="VideoViewMapDataTransfer">
+        select
+        video_view.uuid,
+        video_view.path_uuid,
+        video_view.info,
+        video_view.clicks,
+        video_view.create_time,
+        file.file_name
+        from video_view left join file on video_view.path_uuid = file.uuid
+        <where>
+            <if test="videoView.id != null">
+                and video_view.id = #{videoView.id}
+            </if>
+            <if test="videoView.uuid != null and videoView.uuid != ''">
+                and video_view.uuid = #{videoView.uuid}
+            </if>
+            <if test="videoView.pathUuid != null and videoView.pathUuid != ''">
+                and video_view.path_uuid = #{videoView.pathUuid}
+            </if>
+            <if test="videoView.info != null and videoView.info != ''">
+                and video_view.info = #{videoView.info}
+            </if>
+            <if test="videoView.clicks != null and videoView.clicks != -1 ">
+                and video_view.clicks = #{videoView.clicks}
+            </if>
+            <if test="videoView.createTime != null">
+                and video_view.create_time = #{videoView.createTime}
+            </if>
+            <if test="keyword != null">
+                and file.file_name like concat('%',#{keyword},'%')
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from video_view left join file on video_view.path_uuid = file.uuid
+        <where>
+            <if test="videoView.id != null">
+                and video_view.id = #{videoView.id}
+            </if>
+            <if test="videoView.uuid != null and videoView.uuid != ''">
+                and video_view.uuid = #{videoView.uuid}
+            </if>
+            <if test="videoView.pathUuid != null and videoView.pathUuid != ''">
+                and video_view.path_uuid = #{videoView.pathUuid}
+            </if>
+            <if test="videoView.info != null and videoView.info != ''">
+                and video_view.info = #{videoView.info}
+            </if>
+            <if test="videoView.clicks != null and videoView.clicks != -1 ">
+                and video_view.clicks = #{videoView.clicks}
+            </if>
+            <if test="videoView.createTime != null">
+                and video_view.create_time = #{videoView.createTime}
+            </if>
+            <if test="keyword != null">
+                and file.file_name like concat('%',#{keyword},'%')
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into video_view(uuid, path_uuid, info, clicks, create_time)
+        values (#{uuid}, #{pathUuid}, #{info}, #{clicks}, #{createTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into video_view(uuid, path_uuid, info, clicks, create_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.uuid}, #{entity.pathUuid}, #{entity.info}, #{entity.clicks}, #{entity.createTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into video_view(uuid, path_uuid, info, clicks, create_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.uuid}, #{entity.pathUuid}, #{entity.info}, #{entity.clicks}, #{entity.createTime})
+        </foreach>
+        on duplicate key update
+        uuid = values(uuid),
+        path_uuid = values(path_uuid),
+        info = values(info),
+        clicks = values(clicks),
+        create_time = values(create_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update video_view
+        <set>
+            <if test="videoView.id != null">
+                and video_view.id = #{videoView.id}
+            </if>
+            <if test="videoView.uuid != null and videoView.uuid != ''">
+                and video_view.uuid = #{videoView.uuid}
+            </if>
+            <if test="videoView.pathUuid != null and videoView.pathUuid != ''">
+                and video_view.path_uuid = #{videoView.pathUuid}
+            </if>
+            <if test="videoView.info != null and videoView.info != ''">
+                and video_view.info = #{videoView.info}
+            </if>
+            <if test="videoView.clicks != null and videoView.clicks != -1 ">
+                and video_view.clicks = #{videoView.clicks}
+            </if>
+            <if test="videoView.createTime != null">
+                and video_view.create_time = #{videoView.createTime}
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from video_view where id = #{id}
+    </delete>
+
+</mapper>
+

@@ -43,9 +43,9 @@
 
     <!--子查询-->
     <select id="queryFileByUuid" resultMap="FileMap">
-        select * from anime_file
-        left join anime_info_link
-        on anime_file.uuid = anime_info_link.video_uuid
+        select * from file
+        left join video_info
+        on file.uuid = video_info.video_uuid
         where parent_folder = #{path_uuid} order by file_name;
     </select>
 
@@ -57,8 +57,8 @@
         comic_view.info,
         comic_view.clicks,
         comic_view.create_time,
-        anime_file.file_name
-        from comic_view left join anime_file on comic_view.path_uuid = anime_file.uuid
+        file.file_name
+        from comic_view left join file on comic_view.path_uuid = file.uuid
         <where>
             <if test="ComicViewEntity.id != null">
                 and comic_view.id = #{ComicViewEntity.id}

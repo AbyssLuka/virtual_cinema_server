@@ -2,13 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.luka.r18.mappers.UserDataMapper">
 
-    <resultMap type="com.luka.r18.entity.UserDataEntity" id="UserDataMap">
+    <resultMap type="com.luka.r18.entity.UserEntity" id="UserMap">
         <result property="id" column="id" jdbcType="INTEGER"/>
         <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
         <result property="salt" column="salt" jdbcType="VARCHAR"/>
         <result property="email" column="email" jdbcType="VARCHAR"/>
-        <result property="phone" column="phone" jdbcType="VARCHAR"/>
-        <result property="address" column="address" jdbcType="VARCHAR"/>
         <result property="info" column="info" jdbcType="VARCHAR"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="password" column="password" jdbcType="VARCHAR"/>
@@ -19,8 +17,6 @@
 
     <resultMap type="com.luka.r18.entity.response_object.UserInfo" id="UserInfoMap">
         <result property="email" column="email" jdbcType="VARCHAR"/>
-        <result property="phone" column="phone" jdbcType="VARCHAR"/>
-        <result property="address" column="address" jdbcType="VARCHAR"/>
         <result property="info" column="info" jdbcType="VARCHAR"/>
         <result property="username" column="username" jdbcType="VARCHAR"/>
         <result property="profilePhoto" column="profile_photo" jdbcType="VARCHAR"/>
@@ -31,39 +27,39 @@
     <!--查询用户信息-->
     <select id="selectUserInfoByName" resultMap="UserInfoMap">
         select
-        email, phone, address, info, username, profile_photo, sex_type, create_time
-        from user_data
+        email, info, username, profile_photo, sex_type, create_time
+        from user
         where username = #{username}
       </select>
 
     <!--查询单个-->
-    <select id="queryById" resultMap="UserDataMap">
+    <select id="queryById" resultMap="UserMap">
         select
-          id, uuid, salt, email, phone, address, info, username, password, profile_photo, sex_type, create_time
-        from user_data
+          id, uuid, salt, email, info, username, password, profile_photo, sex_type, create_time
+        from user
         where id = #{id}
     </select>
 
     <!--通过用户名查询-->
-    <select id="selectUserByName" resultMap="UserDataMap">
+    <select id="selectUserByName" resultMap="UserMap">
         select
-          id, uuid, salt, email, phone, address, info, username, password, profile_photo, sex_type, create_time
-        from user_data
+          id, uuid, salt, email, info, username, password, profile_photo, sex_type, create_time
+        from user
         where username = #{username}
     </select>
 
     <!--是否已存在的邮箱和用户名-->
     <select id="haveNameOrEMali" resultType="Integer">
         select count(*)
-        from user_data
+        from user
         where username = #{username} or email = #{email};
     </select>
 
     <!--查询指定行数据-->
-    <select id="queryAllByLimit" resultMap="UserDataMap">
+    <select id="queryAllByLimit" resultMap="UserMap">
         select
-        id, uuid, salt, email, phone, address, info, username, password, profile_photo, sex_type, create_time
-        from user_data
+        id, uuid, salt, email, info, username, password, profile_photo, sex_type, create_time
+        from user
         <where>
             <if test="id != null">
                 and id = #{id}
@@ -76,12 +72,6 @@
             </if>
             <if test="email != null and email != ''">
                 and email = #{email}
-            </if>
-            <if test="phone != null and phone != ''">
-                and phone = #{phone}
-            </if>
-            <if test="address != null and address != ''">
-                and address = #{address}
             </if>
             <if test="info != null and info != ''">
                 and info = #{info}
@@ -108,7 +98,7 @@
     <!--统计总行数-->
     <select id="count" resultType="java.lang.Long">
         select count(1)
-        from user_data
+        from user
         <where>
             <if test="id != null">
                 and id = #{id}
@@ -121,12 +111,6 @@
             </if>
             <if test="email != null and email != ''">
                 and email = #{email}
-            </if>
-            <if test="phone != null and phone != ''">
-                and phone = #{phone}
-            </if>
-            <if test="address != null and address != ''">
-                and address = #{address}
             </if>
             <if test="info != null and info != ''">
                 and info = #{info}
@@ -151,34 +135,32 @@
 
     <!--新增所有列-->
     <insert id="insert" keyProperty="id" useGeneratedKeys="true">
-        insert into user_data(uuid, salt, email, phone, address, info, username, password, profile_photo, sex_type, create_time)
-        values (#{uuid}, #{salt}, #{email}, #{phone}, #{address}, #{info}, #{username}, #{password}, #{profilePhoto}, #{sexType}, #{createTime})
+        insert into user(uuid, salt, email, info, username, password, profile_photo, sex_type, create_time)
+        values (#{uuid}, #{salt}, #{email}, #{info}, #{username}, #{password}, #{profilePhoto}, #{sexType}, #{createTime})
     </insert>
 
     <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into user_data(uuid, salt, email, phone, address, info, username, password, profile_photo, sex_type,
+        insert into user(uuid, salt, email, info, username, password, profile_photo, sex_type,
         create_time)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.uuid}, #{entity.salt}, #{entity.email}, #{entity.phone}, #{entity.address}, #{entity.info},
+            (#{entity.uuid}, #{entity.salt}, #{entity.email}, #{entity.info},
             #{entity.username}, #{entity.password}, #{entity.profilePhoto}, #{entity.sexType}, #{entity.createTime})
         </foreach>
     </insert>
 
     <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
-        insert into user_data(uuid, salt, email, phone, address, info, username, password, profile_photo, sex_type,
+        insert into user(uuid, salt, email, info, username, password, profile_photo, sex_type,
         create_time)
         values
         <foreach collection="entities" item="entity" separator=",">
-            (#{entity.uuid}, #{entity.salt}, #{entity.email}, #{entity.phone}, #{entity.address}, #{entity.info},
+            (#{entity.uuid}, #{entity.salt}, #{entity.email}, #{entity.info},
             #{entity.username}, #{entity.password}, #{entity.profilePhoto}, #{entity.sexType}, #{entity.createTime})
         </foreach>
         on duplicate key update
         uuid = values(uuid),
         salt = values(salt),
         email = values(email),
-        phone = values(phone),
-        address = values(address),
         info = values(info),
         username = values(username),
         password = values(password),
@@ -189,7 +171,7 @@
 
     <!--通过主键修改数据-->
     <update id="update">
-        update user_data
+        update user
         <set>
             <if test="uuid != null and uuid != ''">
                 uuid = #{uuid},
@@ -199,12 +181,6 @@
             </if>
             <if test="email != null and email != ''">
                 email = #{email},
-            </if>
-            <if test="phone != null and phone != ''">
-                phone = #{phone},
-            </if>
-            <if test="address != null and address != ''">
-                address = #{address},
             </if>
             <if test="info != null and info != ''">
                 info = #{info},
@@ -230,7 +206,7 @@
 
     <!--通过主键删除-->
     <delete id="deleteById">
-        delete from user_data where id = #{id}
+        delete from user where id = #{id}
     </delete>
 
 </mapper>

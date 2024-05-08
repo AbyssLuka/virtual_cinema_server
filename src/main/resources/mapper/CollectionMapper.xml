@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luka.r18.mappers.CollectionMapper">
+
+    <resultMap type="com.luka.r18.entity.CollectionEntity" id="CollectionMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
+        <result property="viewUuid" column="view_uuid" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap type="com.luka.r18.entity.response_object.CollectionView" id="CollectionViewMap">
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="userUuid" column="user_uuid" jdbcType="VARCHAR"/>
+        <result property="viewUuid" column="view_uuid" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <association property="videoViewData" javaType="com.luka.r18.entity.response_object.VideoView">
+            <result property="uuid" column="anime_view_uuid" jdbcType="VARCHAR"/>
+            <result property="pathUuid" column="path_uuid" jdbcType="VARCHAR"/>
+            <result property="title" column="file_name" jdbcType="VARCHAR"/>
+            <result property="info" column="info" jdbcType="VARCHAR"/>
+            <result property="clicks" column="clicks" jdbcType="INTEGER"/>
+            <result property="createTime" column="anime_view_create_time" jdbcType="TIMESTAMP"/>
+            <collection property="fileList" ofType="ArrayList" select="queryFileByUuid" column="path_uuid"/>
+        </association>
+    </resultMap>
+
+    <resultMap id="AnimeFileMap" type="com.luka.r18.entity.response_object.FileListData">
+        <result property="fileType" column="type" jdbcType="VARCHAR"/>
+        <result property="fileUuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="fileName" column="file_name" jdbcType="VARCHAR"/>
+        <result property="fileSize" column="file_size" jdbcType="VARCHAR"/>
+        <result property="lastEditTime" column="last_edit_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="CollectionMap">
+        select
+          uuid, user_uuid, view_uuid, create_time
+        from collection
+        where id = #{id}
+    </select>
+
+    <!--查找文件-子查询-->
+    <select id="queryFileByUuid" resultMap="AnimeFileMap">
+        select file.type,
+               file.uuid,
+               file.file_name,
+               file.file_size,
+               file.last_edit_time
+        from file
+                 left join video_info
+                           on file.uuid = video_info.video_uuid
+        where parent_folder = #{path_uuid};
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="CollectionViewMap">
+        select
+        collection.uuid,
+        collection.user_uuid,
+        collection.view_uuid,
+        collection.create_time,
+
+        video_view.uuid as video_view_uuid,
+        video_view.path_uuid,
+        video_view.info,
+        video_view.clicks,
+        video_view.create_time as video_view_create_time,
+
+        file.file_name
+
+        from collection
+        left join video_view on collection.view_uuid = video_view.uuid
+        left join file on video_view.path_uuid = file.uuid
+
+        <where>
+            <if test="collect.id != null">
+                and id = #{collect.id}
+            </if>
+            <if test="collect.uuid != null and collect.uuid != ''">
+                and uuid = #{collectt.uuid}
+            </if>
+            <if test="collect.userUuid != null and collect.userUuid != ''">
+                and user_uuid = #{collect.userUuid}
+            </if>
+            <if test="collect.viewUuid != null and collect.viewUuid != ''">
+                and view_uuid = #{collect.viewUuid}
+            </if>
+            <if test="collect.createTime != null">
+                and create_time = #{acollect.createTime}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from collection
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="userUuid != null and userUuid != ''">
+                and user_uuid = #{userUuid}
+            </if>
+            <if test="viewUuid != null and viewUuid != ''">
+                and view_uuid = #{viewUuid}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+        </where>
+    </select>
+
+    <!--统计总行数-->
+    <select id="selectByEntity" resultMap="CollectionMap">
+        select * from collection
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="userUuid != null and userUuid != ''">
+                and user_uuid = #{userUuid}
+            </if>
+            <if test="viewUuid != null and viewUuid != ''">
+                and view_uuid = #{viewUuid}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into collection(uuid, user_uuid, view_uuid, create_time)
+        values (#{uuid}, #{userUuid}, #{viewUuid}, #{createTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into collection(uuid, user_uuid, view_uuid, create_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.uuid}, #{entity.userUuid}, #{entity.viewUuid}, #{entity.createTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into collection(uuid, user_uuid, view_uuid, create_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.uuid}, #{entity.userUuid}, #{entity.viewUuid}, #{entity.createTime})
+        </foreach>
+        on duplicate key update
+        uuid = values(uuid),
+        user_uuid = values(user_uuid),
+        view_uuid = values(view_uuid),
+        create_time = values(create_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update collection
+        <set>
+            <if test="uuid != null and uuid != ''">
+                uuid = #{uuid},
+            </if>
+            <if test="userUuid != null and userUuid != ''">
+                user_uuid = #{userUuid},
+            </if>
+            <if test="viewUuid != null and viewUuid != ''">
+                view_uuid = #{viewUuid},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from collection where id = #{id}
+    </delete>
+
+    <!--通过主键删除-->
+    <delete id="delete">
+        delete from collection
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="userUuid != null and userUuid != ''">
+                and user_uuid = #{userUuid}
+            </if>
+            <if test="viewUuid != null and viewUuid != ''">
+                and view_uuid = #{viewUuid}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+        </where>
+    </delete>
+
+</mapper>
+

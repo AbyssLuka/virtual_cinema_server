@@ -3,11 +3,11 @@ package com.luka.r18.controller;
 import com.google.code.kaptcha.Producer;
 import com.luka.r18.entity.request_object.LoginObject;
 import com.luka.r18.entity.request_object.SignupObject;
-import com.luka.r18.entity.UserDataEntity;
+import com.luka.r18.entity.UserEntity;
 import com.luka.r18.entity.request_object.UpdatePasswordObject;
 import com.luka.r18.entity.response_object.UserInfo;
 import com.luka.r18.service.impl.RedisServiceImpl;
-import com.luka.r18.service.impl.UserDataServiceImpl;
+import com.luka.r18.service.impl.UserServiceImpl;
 import com.luka.r18.util.CustomUtil;
 import com.luka.r18.util.JWTToken;
 import com.luka.r18.util.TokenUtil;
@@ -22,7 +22,6 @@ import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.awt.image.BufferedImage;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -33,7 +32,7 @@ import java.io.OutputStream;
 public class UserController {
 
     @Resource
-    private UserDataServiceImpl userDataServiceImpl;
+    private UserServiceImpl userServiceImpl;
 
     @Resource
     private RedisServiceImpl redisService;
@@ -56,10 +55,10 @@ public class UserController {
             if (code == null) {
                 return CustomUtil.toJson(400, "验证码错误或者过期");
             }
-            UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);
-            password = CustomUtil.md5(password + userDataEntity.getSalt());
+            UserEntity userEntity = userServiceImpl.selectUserByName(username);
+            password = CustomUtil.md5(password + userEntity.getSalt());
             //创建Token
-            String token = TokenUtil.createToken(username, password, userDataEntity.getUuid());
+            String token = TokenUtil.createToken(username, password, userEntity.getUuid());
             //登录验证
             SecurityUtils.getSubject().login(new JWTToken(token));
             response.setHeader("token", token);
@@ -71,18 +70,12 @@ public class UserController {
         }
     }
 
-    /**
-     * 用户类
-     *
-     * @param signupObject 注册信息
-     * @return code
-     */
     @RequestMapping(path = {"/signup"}, method = RequestMethod.POST)
     public String register(@RequestBody @Validated SignupObject signupObject) {
         String username = signupObject.getUsername();
         String email = signupObject.getEmail();
         //账号是否已经被注册？
-        int count = userDataServiceImpl.haveNameOrEMali(username, email);
+        int count = userServiceImpl.haveNameOrEMali(username, email);
         if (count > 0) {
             return CustomUtil.toJson(10001, "用户名已存在或者邮箱已被注册");
         }
@@ -99,7 +92,7 @@ public class UserController {
             return CustomUtil.toJson(10000, "未知错误 注册失败");
         }
         String url = host.concat("/user/activation/").concat(uuid);
-        userDataServiceImpl.sendActivateMessage(username, url, email);
+        userServiceImpl.sendActivateMessage(username, url, email);
         return CustomUtil.toJson(200, "激活邮件已发送");
     }
 
@@ -115,17 +108,17 @@ public class UserController {
         if (signupObject == null) {
             return CustomUtil.toJson(400, "激活码过期或者不存在");
         }
-        UserDataEntity userDataEntity = new UserDataEntity();
-        userDataEntity.setUsername(signupObject.getUsername());
+        UserEntity userEntity = new UserEntity();
+        userEntity.setUsername(signupObject.getUsername());
         String random = CustomUtil.getUUID();
         String password = CustomUtil.md5(signupObject.getPassword() + random.split("-")[0]);
-        userDataEntity.setPassword(password);
-        userDataEntity.setSalt(random.split("-")[0]);
-        userDataEntity.setUuid(uuid);
-        userDataEntity.setEmail(signupObject.getEmail());
-        userDataEntity.setProfilePhoto("default.jpg");
+        userEntity.setPassword(password);
+        userEntity.setSalt(random.split("-")[0]);
+        userEntity.setUuid(uuid);
+        userEntity.setEmail(signupObject.getEmail());
+        userEntity.setProfilePhoto("default.jpg");
         //存入数据库
-        int insert = userDataServiceImpl.insert(userDataEntity);
+        int insert = userServiceImpl.insert(userEntity);
         //清除redis中的缓存数据
         String email = signupObject.getEmail();
         redisService.del(email, uuid);
@@ -145,11 +138,11 @@ public class UserController {
                 profile = profilePhotoPath.concat("/default.jpg");
             } else {
                 String username = TokenUtil.getTokenClaim(token, "username");
-                UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);
-                if (userDataEntity == null) {
+                UserEntity userEntity = userServiceImpl.selectUserByName(username);
+                if (userEntity == null) {
                     profile = profilePhotoPath.concat("/default.jpg");
                 } else {
-                    profile = profilePhotoPath.concat("/").concat(userDataEntity.getProfilePhoto());
+                    profile = profilePhotoPath.concat("/").concat(userEntity.getProfilePhoto());
                 }
             }
             byte[] buffer = CustomUtil.getFile(profile);
@@ -166,7 +159,7 @@ public class UserController {
         if (userName == null) {
             return CustomUtil.toJson(400, "Token无效");
         }
-        UserInfo userInfo = userDataServiceImpl.selectUserInfoByName(userName);
+        UserInfo userInfo = userServiceImpl.selectUserInfoByName(userName);
         if (userInfo == null) {
             return CustomUtil.toJson(400, "没有找到用户");
         }
@@ -180,22 +173,22 @@ public class UserController {
         }
         String username = TokenUtil.getTokenClaim(request.getHeader("token"), "username");
 
-        UserDataEntity userDataEntity = userDataServiceImpl.selectUserByName(username);
+        UserEntity userEntity = userServiceImpl.selectUserByName(username);
 
-        System.out.println(userDataEntity);
+        System.out.println(userEntity);
 
-        String oldPassword = CustomUtil.md5(update.getOldPassword() + userDataEntity.getSalt());
-        if (!oldPassword.equals(userDataEntity.getPassword())){
+        String oldPassword = CustomUtil.md5(update.getOldPassword() + userEntity.getSalt());
+        if (!oldPassword.equals(userEntity.getPassword())){
             return CustomUtil.toJson(-1, "失败");
         }
 
         String salt = CustomUtil.getUUID().split("-")[0];
         String newPassword = CustomUtil.md5(update.getNewPassword() + salt);
-        userDataEntity.setPassword(newPassword);
-        userDataEntity.setSalt(salt);
-        userDataServiceImpl.update(userDataEntity);                                                                     //更新
+        userEntity.setPassword(newPassword);
+        userEntity.setSalt(salt);
+        userServiceImpl.update(userEntity);                                                                     //更新
 
-        String token = TokenUtil.createToken(username, newPassword, userDataEntity.getUuid());                                                       //生成新的token
+        String token = TokenUtil.createToken(username, newPassword, userEntity.getUuid());                                                       //生成新的token
         response.setHeader("token", token);
 
         return CustomUtil.toJson(200, "成功");
@@ -223,7 +216,7 @@ public class UserController {
             redisService.set(email, uuid, 60 * 5);
         }
         String url = host.concat("/user/activation/").concat(uuid);
-        userDataServiceImpl.sendActivateMessage(username, url, email);
+        userServiceImpl.sendActivateMessage(username, url, email);
         return CustomUtil.toJson(10003, "失败");
     }
 

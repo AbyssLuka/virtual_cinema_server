@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luka.r18.mappers.VideoInfoMapper">
+
+    <resultMap type="com.luka.r18.entity.VideoInfoEntity" id="VideoInfoMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="videoUuid" column="video_uuid" jdbcType="VARCHAR"/>
+        <result property="coverUuid" column="cover_uuid" jdbcType="VARCHAR"/>
+        <result property="subtitleUuid" column="subtitle_uuid" jdbcType="VARCHAR"/>
+        <result property="info" column="info" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="VideoInfoMap">
+        select
+          id, uuid, video_uuid, cover_uuid, subtitle_uuid, info
+        from video_info
+        where id = #{id}
+    </select>
+
+    <!--查询视频字幕路径-->
+    <select id="querySubtitlePath" resultType="String">
+        select file.absolute_path
+        from video_info
+                 left join file
+                           on file.uuid = video_info.subtitle_uuid
+        where video_uuid = #{videoUuid};
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="VideoInfoMap">
+        select
+        id, uuid, video_uuid, cover_uuid, subtitle_uuid, info
+        from video_info
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="videoUuid != null and videoUuid != ''">
+                and video_uuid = #{videoUuid}
+            </if>
+            <if test="coverUuid != null and coverUuid != ''">
+                and cover_uuid = #{coverUuid}
+            </if>
+            <if test="subtitleUuid != null and subtitleUuid != ''">
+                and subtitle_uuid = #{subtitleUuid}
+            </if>
+            <if test="info != null and info != ''">
+                and info = #{info}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from video_info
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="videoUuid != null and videoUuid != ''">
+                and video_uuid = #{videoUuid}
+            </if>
+            <if test="coverUuid != null and coverUuid != ''">
+                and cover_uuid = #{coverUuid}
+            </if>
+            <if test="subtitleUuid != null and subtitleUuid != ''">
+                and subtitle_uuid = #{subtitleUuid}
+            </if>
+            <if test="info != null and info != ''">
+                and info = #{info}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into video_info(uuid, video_uuid, cover_uuid, subtitle_uuid, info)
+        values (#{uuid}, #{videoUuid}, #{coverUuid}, #{subtitleUuid}, #{info})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into video_info(uuid, video_uuid, cover_uuid, subtitle_uuid, info)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.uuid}, #{entity.videoUuid}, #{entity.coverUuid}, #{entity.subtitleUuid}, #{entity.info})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into video_info(uuid, video_uuid, cover_uuid, subtitle_uuid, info)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.uuid}, #{entity.videoUuid}, #{entity.coverUuid}, #{entity.subtitleUuid}, #{entity.info})
+        </foreach>
+        on duplicate key update
+        uuid = values(uuid),
+        video_uuid = values(video_uuid),
+        cover_uuid = values(cover_uuid),
+        subtitle_uuid = values(subtitle_uuid),
+        info = values(info)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update video_info
+        <set>
+            <if test="uuid != null and uuid != ''">
+                uuid = #{uuid},
+            </if>
+            <if test="videoUuid != null and videoUuid != ''">
+                video_uuid = #{videoUuid},
+            </if>
+            <if test="coverUuid != null and coverUuid != ''">
+                cover_uuid = #{coverUuid},
+            </if>
+            <if test="subtitleUuid != null and subtitleUuid != ''">
+                subtitle_uuid = #{subtitleUuid},
+            </if>
+            <if test="info != null and info != ''">
+                info = #{info},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from video_info where id = #{id}
+    </delete>
+
+</mapper>
+

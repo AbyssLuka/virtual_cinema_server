@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.luka.r18.mappers.FileMapper">
+
+    <resultMap type="com.luka.r18.entity.FileEntity" id="FileMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="type" column="type" jdbcType="VARCHAR"/>
+        <result property="md5" column="md5" jdbcType="VARCHAR"/>
+        <result property="uuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="info" column="info" jdbcType="VARCHAR"/>
+        <result property="fileName" column="file_name" jdbcType="VARCHAR"/>
+        <result property="parentFolder" column="parent_folder" jdbcType="VARCHAR"/>
+        <result property="fileSize" column="file_size" jdbcType="VARCHAR"/>
+        <result property="absolutePath" column="absolute_path" jdbcType="VARCHAR"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="lastEditTime" column="last_edit_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap type="com.luka.r18.entity.response_object.VideoData" id="VideoMap">
+        <result property="videoUuid" column="uuid" jdbcType="VARCHAR"/>
+        <result property="videoName" column="file_name" jdbcType="VARCHAR"/>
+        <result property="cover" column="cover_uuid" jdbcType="VARCHAR"/>
+        <result property="subtitle" column="subtitle_uuid" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <select id="selectFileByType" resultMap="FileMap">
+        select * from file where type = #{type}
+    </select>
+
+    <select id="selectFileByFileName" resultMap="FileMap">
+        select * from file where file_name = #{fileName};
+    </select>
+
+    <select id="selectFileByUuid" resultMap="FileMap">
+        select * from file where uuid = #{uuid}
+    </select>
+
+    <select id="selectVideoByUuid" resultMap="VideoMap">
+        select file.uuid,file.file_name,video_info.cover_uuid,video_info.subtitle_uuid
+        from file left join video_info
+        on file.uuid = video_info.video_uuid
+        where file.uuid = #{uuid}
+    </select>
+
+    <select id="selectFileByParentFolder" resultMap="FileMap">
+        select * from file where parent_folder = #{parentFolder} order by file_name;
+    </select>
+
+    <select id="selectFileByNameKeyword" resultMap="FileMap">
+        select * from file where file_name like concat('%',#{keyWord},'%')
+    </select>
+
+    <!--查询单个-->
+    <select id="queryById" resultMap="FileMap">
+        select
+          id, type, md5, uuid, info, file_name, parent_folder, file_size, absolute_path, create_time, last_edit_time
+        from file
+        where id = #{id}
+    </select>
+
+    <!--查询指定行数据-->
+    <select id="queryAllByLimit" resultMap="FileMap">
+        select
+        id, type, md5, uuid, info, file_name, parent_folder, file_size, absolute_path, create_time,
+        last_edit_time
+        from file
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="type != null and type != ''">
+                and type = #{type}
+            </if>
+            <if test="md5 != null and md5 != ''">
+                and md5 = #{md5}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="info != null and info != ''">
+                and info = #{info}
+            </if>
+            <if test="fileName != null and fileName != ''">
+                and file_name = #{fileName}
+            </if>
+            <if test="parentFolder != null and parentFolder != ''">
+                and parent_folder = #{parentFolder}
+            </if>
+            <if test="fileSize != null and fileSize != ''">
+                and file_size = #{fileSize}
+            </if>
+            <if test="absolutePath != null and absolutePath != ''">
+                and absolute_path = #{absolutePath}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="lastEditTime != null">
+                and last_edit_time = #{lastEditTime}
+            </if>
+        </where>
+        limit #{pageable.offset}, #{pageable.pageSize}
+    </select>
+
+    <!--统计总行数-->
+    <select id="count" resultType="java.lang.Long">
+        select count(1)
+        from file
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="type != null and type != ''">
+                and type = #{type}
+            </if>
+            <if test="md5 != null and md5 != ''">
+                and md5 = #{md5}
+            </if>
+            <if test="uuid != null and uuid != ''">
+                and uuid = #{uuid}
+            </if>
+            <if test="info != null and info != ''">
+                and info = #{info}
+            </if>
+            <if test="fileName != null and fileName != ''">
+                and file_name = #{fileName}
+            </if>
+            <if test="parentFolder != null and parentFolder != ''">
+                and parent_folder = #{parentFolder}
+            </if>
+            <if test="fileSize != null and fileSize != ''">
+                and file_size = #{fileSize}
+            </if>
+            <if test="absolutePath != null and absolutePath != ''">
+                and absolute_path = #{absolutePath}
+            </if>
+            <if test="createTime != null">
+                and create_time = #{createTime}
+            </if>
+            <if test="lastEditTime != null">
+                and last_edit_time = #{lastEditTime}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="insert" keyProperty="id" useGeneratedKeys="true">
+        insert into file(type, md5, uuid, info, file_name, parent_folder, file_size, absolute_path, create_time, last_edit_time)
+        values (#{type},#{md5}, #{uuid}, #{info}, #{fileName}, #{parentFolder}, #{fileSize}, #{absolutePath}, #{createTime}, #{lastEditTime})
+    </insert>
+
+    <insert id="insertBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into file(type, md5, uuid, info, file_name, parent_folder, file_size,
+        absolute_path, create_time, last_edit_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type}, #{entity.md5}, #{entity.uuid}, #{entity.info},
+            #{entity.fileName}, #{entity.parentFolder}, #{entity.fileSize}, #{entity.absolutePath},
+            #{entity.createTime}, #{entity.lastEditTime})
+        </foreach>
+    </insert>
+
+    <insert id="insertOrUpdateBatch" keyProperty="id" useGeneratedKeys="true">
+        insert into file(type, md5, uuid, info, file_name, parent_folder, file_size,
+        absolute_path, create_time, last_edit_time)
+        values
+        <foreach collection="entities" item="entity" separator=",">
+            (#{entity.type}, #{entity.md5}, #{entity.uuid}, #{entity.info},
+            #{entity.fileName}, #{entity.parentFolder}, #{entity.fileSize}, #{entity.absolutePath},
+            #{entity.createTime}, #{entity.lastEditTime})
+        </foreach>
+        on duplicate key update
+        type = values(type),
+        md5 = values(md5),
+        uuid = values(uuid),
+        info = values(info),
+        file_name = values(file_name),
+        parent_folder = values(parent_folder),
+        file_size = values(file_size),
+        absolute_path = values(absolute_path),
+        create_time = values(create_time),
+        last_edit_time = values(last_edit_time)
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="update">
+        update file
+        <set>
+            <if test="type != null and type != ''">
+                type = #{type},
+            </if>
+            <if test="md5 != null and md5 != ''">
+                md5 = #{md5},
+            </if>
+            <if test="uuid != null and uuid != ''">
+                uuid = #{uuid},
+            </if>
+            <if test="info != null and info != ''">
+                info = #{info},
+            </if>
+            <if test="fileName != null and fileName != ''">
+                file_name = #{fileName},
+            </if>
+            <if test="parentFolder != null and parentFolder != ''">
+                parent_folder = #{parentFolder},
+            </if>
+            <if test="fileSize != null and fileSize != ''">
+                file_size = #{fileSize},
+            </if>
+            <if test="absolutePath != null and absolutePath != ''">
+                absolute_path = #{absolutePath},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="lastEditTime != null">
+                last_edit_time = #{lastEditTime},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteById">
+        delete from file where id = #{id}
+    </delete>
+
+</mapper>
+

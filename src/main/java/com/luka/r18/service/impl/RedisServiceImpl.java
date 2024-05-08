@@ -11,7 +11,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-@Service
+@Service("redisService")
 public class RedisServiceImpl implements RedisService {
 
     @Resource

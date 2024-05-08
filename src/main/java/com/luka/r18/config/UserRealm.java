@@ -1,7 +1,7 @@
 package com.luka.r18.config;
 
-import com.luka.r18.entity.UserDataEntity;
-import com.luka.r18.service.impl.UserDataServiceImpl;
+import com.luka.r18.entity.UserEntity;
+import com.luka.r18.service.impl.UserServiceImpl;
 import com.luka.r18.util.JWTToken;
 import com.luka.r18.util.TokenUtil;
 import org.apache.shiro.authc.*;
@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 public class UserRealm extends AuthorizingRealm {
 
     @Resource
-    UserDataServiceImpl userDataServiceImpl;
+    UserServiceImpl userDataServiceImpl;
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
@@ -34,7 +34,7 @@ public class UserRealm extends AuthorizingRealm {
             String userName = TokenUtil.getTokenClaim(token, "username");
             assert userName != null;
 
-            UserDataEntity user = userDataServiceImpl.selectUserByName(userName);
+            UserEntity user = userDataServiceImpl.selectUserByName(userName);
             assert user != null;
 
             if (!TokenUtil.verify(token, userName, user.getPassword())) {

@@ -14,18 +14,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
-/**
- * (Model)表控制层
- *
- * @author Luka
- * @since 2024-02-05 04:26:19
- */
 @RestController
 @RequestMapping("model")
 public class ModelController {
-    /**
-     * 服务对象
-     */
     @Resource
     private ModelService modelService;
 
