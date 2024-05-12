@@ -29,7 +29,6 @@ public class ComicViewServiceImpl implements ComicViewService {
 
     @Override
     public ComicViewEntity insert(ComicViewEntity comicViewEntity) {
-        System.out.println(comicViewEntity.toString());
         this.comicViewMapper.insert(comicViewEntity);
         return comicViewEntity;
     }

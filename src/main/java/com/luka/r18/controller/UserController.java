@@ -175,8 +175,6 @@ public class UserController {
 
         UserEntity userEntity = userServiceImpl.selectUserByName(username);
 
-        System.out.println(userEntity);
-
         String oldPassword = CustomUtil.md5(update.getOldPassword() + userEntity.getSalt());
         if (!oldPassword.equals(userEntity.getPassword())){
             return CustomUtil.toJson(-1, "失败");

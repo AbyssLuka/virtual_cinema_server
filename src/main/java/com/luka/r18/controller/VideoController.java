@@ -30,13 +30,9 @@ public class VideoController {
     @ResponseBody
     @RequestMapping(path = {"/list"}, method = RequestMethod.POST)
     public String animeViewList(@RequestBody @Valid PageObject pageObject) {
-        System.out.println(pageObject.getSize());
         if (pageObject.getPage() < 0) pageObject.setPage(0);
-
         PageRequest pageRequest = PageRequest.of(pageObject.getPage(), pageObject.getSize());
-
         Page<VideoView> animeViewEntities = videoViewService.queryByPage(new VideoViewEntity(), pageRequest, pageObject.getKeyword());
-
         return CustomUtil.toJson(200, "", animeViewEntities);
     }
 
