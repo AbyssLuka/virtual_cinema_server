@@ -39,6 +39,7 @@ public class ShiroConfig {
         filterRuleMap.put("/user/sendEmailCode","anon");
         filterRuleMap.put("/model","anon");
         filterRuleMap.put("/file/**","anon");
+        filterRuleMap.put("/anime/**","anon");
         filterRuleMap.put("/**", "jwt");
         factoryBean.setLoginUrl("/login");
 //        factoryBean.setUnauthorizedUrl("/401");

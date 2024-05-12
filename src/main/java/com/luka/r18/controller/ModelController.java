@@ -30,8 +30,13 @@ public class ModelController {
         }
         List<ModelEntity> modelEntities = modelService.queryByUserName(username);
 
-        return ResponseEntity.ok(new ResponseCodeEntity<List<ModelEntity>>(400, "Token无效", modelEntities));
+        // TODO 临时代码
+        if (modelEntities.isEmpty()){
+            ModelEntity modelEntity = new ModelEntity();
+            modelEntity.setFileName("kirisame_marisa.gltf");
+            modelEntities.add(modelEntity);
+        }
+        return ResponseEntity.ok(new ResponseCodeEntity<>(400, "", modelEntities));
     }
-
 }
 
