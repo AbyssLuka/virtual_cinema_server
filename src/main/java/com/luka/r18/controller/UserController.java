@@ -33,12 +33,10 @@ public class UserController {
 
     @Resource
     private UserServiceImpl userServiceImpl;
-
     @Resource
     private RedisServiceImpl redisService;
-
     @Resource
-    Producer kaptcha;
+    private Producer kaptcha;
 
     @Value("${community.host}")
     private String host;
@@ -184,7 +182,7 @@ public class UserController {
         String newPassword = CustomUtil.md5(update.getNewPassword() + salt);
         userEntity.setPassword(newPassword);
         userEntity.setSalt(salt);
-        userServiceImpl.update(userEntity);                                                                     //更新
+        userServiceImpl.update(userEntity);
 
         String token = TokenUtil.createToken(username, newPassword, userEntity.getUuid());                                                       //生成新的token
         response.setHeader("token", token);
