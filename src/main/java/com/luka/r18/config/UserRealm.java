@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 public class UserRealm extends AuthorizingRealm {
 
     @Resource
-    UserServiceImpl userDataServiceImpl;
+    UserServiceImpl userServiceImpl;
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
@@ -34,7 +34,7 @@ public class UserRealm extends AuthorizingRealm {
             String userName = TokenUtil.getTokenClaim(token, "username");
             assert userName != null;
 
-            UserEntity user = userDataServiceImpl.selectUserByName(userName);
+            UserEntity user = userServiceImpl.selectUserByName(userName);
             assert user != null;
 
             if (!TokenUtil.verify(token, userName, user.getPassword())) {

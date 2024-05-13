@@ -2,7 +2,7 @@ package com.luka.r18.service.impl;
 
 import com.luka.r18.entity.UserEntity;
 import com.luka.r18.entity.response_object.UserInfo;
-import com.luka.r18.mappers.UserDataMapper;
+import com.luka.r18.mappers.UserMapper;
 import com.luka.r18.service.UserService;
 import com.luka.r18.util.MailClient;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.Map;
 public class UserServiceImpl implements UserService {
 
     @Resource
-    private UserDataMapper userMapper;
+    private UserMapper userMapper;
 
     @Resource
     private TemplateEngine templateEngine;
@@ -33,6 +33,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfo selectUserInfoByName(String userName) {
         return userMapper.selectUserInfoByName(userName);
+    }
+
+    @Override
+    public UserEntity selectUserByUuid(String uuid) {
+        return userMapper.selectUserByUuid(uuid);
     }
 
     @Override
@@ -64,8 +69,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public int update(UserEntity userData) {
-        return userMapper.update(userData);
+    public int update(UserEntity userEntity) {
+        return userMapper.update(userEntity);
     }
 
 

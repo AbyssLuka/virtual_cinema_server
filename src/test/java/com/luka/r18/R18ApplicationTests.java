@@ -1,6 +1,6 @@
 package com.luka.r18;
 
-import com.luka.r18.mappers.UserDataMapper;
+import com.luka.r18.mappers.UserMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -10,7 +10,7 @@ import javax.annotation.Resource;
 class R18ApplicationTests {
 
     @Resource
-    UserDataMapper userDataMapper;
+    UserMapper userMapper;
 
     @Test
     void contextLoads() {

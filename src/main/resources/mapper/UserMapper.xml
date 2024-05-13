@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.luka.r18.mappers.UserDataMapper">
+<mapper namespace="com.luka.r18.mappers.UserMapper">
 
     <resultMap type="com.luka.r18.entity.UserEntity" id="UserMap">
         <result property="id" column="id" jdbcType="INTEGER"/>
@@ -46,6 +46,14 @@
           id, uuid, salt, email, info, username, password, profile_photo, sex_type, create_time
         from user
         where username = #{username}
+    </select>
+
+    <!--通过用户名查询-->
+    <select id="selectUserByUuid" resultMap="UserMap">
+        select
+            id, uuid, salt, email, info, username, password, profile_photo, sex_type, create_time
+        from user
+        where uuid = #{uuid}
     </select>
 
     <!--是否已存在的邮箱和用户名-->

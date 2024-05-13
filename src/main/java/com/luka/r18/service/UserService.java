@@ -11,9 +11,11 @@ public interface UserService {
 
     UserInfo selectUserInfoByName(String userName);
 
-    int insert(UserEntity userData);
+    UserEntity selectUserByUuid(String uuid);
 
-    int update(UserEntity userData);
+    int insert(UserEntity userEntity);
+
+    int update(UserEntity userEntity);
 
     String renderMailPage(Map<String, Object> map);
 

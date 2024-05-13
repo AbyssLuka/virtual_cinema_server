@@ -102,6 +102,9 @@ public class UserController {
      */
     @RequestMapping(path = {"/activation/{uuid}"}, method = RequestMethod.GET)
     public String activation(@PathVariable("uuid") String uuid) {
+        if (userServiceImpl.selectUserByUuid(uuid) != null) {
+            return CustomUtil.toJson(400, "已经注册过");
+        }
         SignupObject signupObject = (SignupObject) redisService.get(uuid);
         if (signupObject == null) {
             return CustomUtil.toJson(400, "激活码过期或者不存在");
@@ -174,7 +177,7 @@ public class UserController {
         UserEntity userEntity = userServiceImpl.selectUserByName(username);
 
         String oldPassword = CustomUtil.md5(update.getOldPassword() + userEntity.getSalt());
-        if (!oldPassword.equals(userEntity.getPassword())){
+        if (!oldPassword.equals(userEntity.getPassword())) {
             return CustomUtil.toJson(-1, "失败");
         }
 

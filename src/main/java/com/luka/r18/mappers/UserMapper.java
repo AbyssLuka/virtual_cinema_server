@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 @Mapper
-public interface UserDataMapper {
+public interface UserMapper {
 
     UserEntity selectUserByName(String username);
 
@@ -15,15 +15,17 @@ public interface UserDataMapper {
 
     UserEntity queryById(Integer id);
 
-    long count(UserEntity userData);
+    UserEntity selectUserByUuid(String uuid);
 
-    int insert(UserEntity userData);
+    long count(UserEntity userEntity);
+
+    int insert(UserEntity userEntity);
 
     int insertBatch(@Param("entities") List<UserEntity> entities);
 
     int insertOrUpdateBatch(@Param("entities") List<UserEntity> entities);
 
-    int update(UserEntity userData);
+    int update(UserEntity userEntity);
 
     int deleteById(Integer id);
 
